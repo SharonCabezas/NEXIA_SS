@@ -1216,7 +1216,91 @@ if selected == 'Pacientes':
                     # Si el ID del paciente no existe, mostrar un mensaje de error
                     st.error("El ID del paciente no existe en la base de datos.")
 
+    if selected == 'Historial familiar':
+        def cargar_historial(id_paciente):
+            file_path = f'{id_paciente}_historial_familiar.csv'
+            try:
+                historial_df = pd.read_csv(file_path)
+            except FileNotFoundError:
+                historial_df = pd.DataFrame(columns=[
+                    'ID Paciente', 'ID Familiar', 'Parentesco', 'Tabaquismo', 
+                    'Alcoholismo', 'Afección Crónica', 'Afección Grave', 
+                    'Enfermedad Mental', 'Edad en Desarrollarla', 
+                    'Discapacidad de Desarrollo', 'Defectos Congénitos', 
+                    'Problemas de Embarazo', 'Causa de Muerte'
+                ])
+            return historial_df
 
+        def guardar_historial(id_paciente, id_familiar, parentesco, tabaquismo, alcoholismo, 
+                              afeccion_cronica, afeccion_grave, enfermedad_mental, 
+                              edad_en_desarrollarla, discapacidad_de_desarrollo, 
+                              defectos_congenitos, problemas_de_embarazo, causa_de_muerte):
+            
+            historial_df = cargar_historial(id_paciente)
+            
+            nueva_entrada = pd.DataFrame({
+                'ID Paciente': [id_paciente],
+                'ID Familiar': [id_familiar],
+                'Parentesco': [parentesco],
+                'Tabaquismo': [tabaquismo],
+                'Alcoholismo': [alcoholismo],
+                'Afección Crónica': [afeccion_cronica],
+                'Afección Grave': [afeccion_grave],
+                'Enfermedad Mental': [enfermedad_mental],
+                'Edad en Desarrollarla': [edad_en_desarrollarla],
+                'Discapacidad de Desarrollo': [discapacidad_de_desarrollo],
+                'Defectos Congénitos': [defectos_congenitos],
+                'Problemas de Embarazo': [problemas_de_embarazo],
+                'Causa de Muerte': [causa_de_muerte]
+            })
+            
+            historial_df = pd.concat([historial_df, nueva_entrada], ignore_index=True)
+            file_path = f'{id_paciente}_historial_familiar.csv'
+            historial_df.to_csv(file_path, index=False)
+            st.success(f"Se ha guardado la información del familiar para el paciente {id_paciente} en '{file_path}'")
+
+        st.title('Historial Familiar del Paciente')
+
+        id_paciente = st.text_input('Ingrese el ID del paciente')
+
+        if id_paciente:
+            historial_df = cargar_historial(id_paciente)
+            if not historial_df.empty:
+                st.subheader('Historial familiar del paciente:')
+                st.write(historial_df)
+            else:
+                st.warning("Todavía no se han registrado datos para este paciente.")
+
+        st.subheader('Ingresar Información del Familiar')
+
+        with st.form(key='formulario_familiar'):
+            id_familiar = st.text_input('ID del Familiar')
+            parentesco = st.text_input('Parentesco')
+            tabaquismo = st.selectbox('¿Presenta Tabaquismo?', ['Sí', 'No'])
+            alcoholismo = st.selectbox('¿Presenta Alcoholismo?', ['Sí', 'No'])
+            afeccion_cronica = st.text_input('Afección Crónica')
+            afeccion_grave = st.text_input('Afección Grave')
+            enfermedad_mental = st.text_input('Enfermedad Mental')
+            edad_en_desarrollarla = st.number_input('Edad en Desarrollarla', min_value=0, max_value=120)
+            discapacidad_de_desarrollo = st.text_input('Discapacidad de Desarrollo')
+            defectos_congenitos = st.text_input('Defectos Congénitos')
+            problemas_de_embarazo = st.text_input('Problemas de Embarazos o Partos')
+            causa_de_muerte = st.text_input('Causa de Muerte')
+            
+            boton_enviar = st.form_submit_button(label='Agregar Información')
+
+        if boton_enviar:
+            if id_paciente and id_familiar:
+                guardar_historial(id_paciente, id_familiar, parentesco, tabaquismo, alcoholismo, 
+                                  afeccion_cronica, afeccion_grave, enfermedad_mental, 
+                                  edad_en_desarrollarla, discapacidad_de_desarrollo, 
+                                  defectos_congenitos, problemas_de_embarazo, causa_de_muerte)
+                
+                historial_df = cargar_historial(id_paciente)
+                st.write(historial_df)
+            else:
+                st.error("Por favor, complete todos los campos obligatorios (ID del Paciente y ID del Familiar).")
+                
     def save_note(doctor_id, patient_id, note):
         notes_df = load_notes(patient_id)
         doctor_info = doctors.loc[doctors['ID'] == doctor_id, ['Nombre(s)', 'Apellido paterno', 'Apellido materno']].values
