@@ -344,6 +344,17 @@ if selected == 'Perfil':
 if selected == 'Exámenes de laboratorio':
     usuarios_pacientes = pd.read_excel("usuarios.xlsx")
     patient_data = st.session_state.get('user_data', None)
+    
+    def get_exam_from_csv(id):
+        file_path = "examenes_laboratorio.csv"
+
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+            citas = df[df['ID del paciente'] == id]
+            return citas
+        else:
+            df = pd.DataFrame(columns=['ID del paciente', 'ID del doctor', 'Título del examen', 'Breve descripción'])
+            return df
 
     if patient_data is not None:
         patient_info = usuarios_pacientes.loc[usuarios_pacientes['ID'] == patient_data['ID']]
@@ -355,6 +366,9 @@ if selected == 'Exámenes de laboratorio':
 
             st.title(f'Exámenes de laboratorio')
             st.subheader(f'{nombre} {ap_paterno} {ap_materno} {id_paciente}')
+            st.subheader("Registro de Exámenes")
+            df = get_exam_from_csv(id_paciente)
+            st.write(df)
 
             def mostrar_archivos_pdf(id_paciente):
                 st.subheader("Archivos")
