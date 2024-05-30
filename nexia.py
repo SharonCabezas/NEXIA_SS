@@ -1417,16 +1417,38 @@ if selected == 'Pacientes':
                         folder_path = f"{id}_examenes"
                         if not os.path.exists(folder_path):
                             os.makedirs(folder_path)
-    
-                        file_path = os.path.join(folder_path, new_file_name)
-                        with open(file_path, "wb") as f:
-                            f.write(uploaded_file.getbuffer())
-                        mostrar_archivos_pdf(id)
+
+                    file_path = os.path.join(folder_path, new_file_name)
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    
     
             # Mostrar tabla CSV
             st.subheader("Registro de Exámenes")
             df = get_exam_from_csv(id)
             st.write(df)
+            
+            def mostrar_archivos_pdf(id_paciente):
+                st.subheader("Archivos")
+                st.info('Selecciona el archivo a descargar:')
+                patient_folder = f"{id_paciente}_examenes"
+
+                if not os.path.exists(patient_folder):
+                    st.error("No hay archivos PDF disponibles para descargar.")
+                    return
+
+                pdf_files = [f for f in os.listdir(patient_folder) if f.endswith('.pdf')]
+                if pdf_files:
+                    for pdf in pdf_files:
+                        file_path = os.path.join(patient_folder, pdf)
+                        with open(file_path, "rb") as f:
+                            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                        download_link = f'<a href="data:application/octet-stream;base64,{base64_pdf}" download="{pdf}">Descargar {pdf}</a>'
+                        st.markdown(download_link, unsafe_allow_html=True)
+                else:
+                    st.error("No hay archivos PDF disponibles para descargar.")
+
+            mostrar_archivos_pdf(id)
     
         else:
             st.error("No se ha seleccionado ningún paciente.")
